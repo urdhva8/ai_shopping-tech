@@ -1,0 +1,14 @@
+﻿# env
+.env
+# node modules
+node_modules/
+# Next/build
+.next/
+dist/
+out/
+# IDE
+.vscode/
+.idea/
+# logs
+npm-debug.log*
+yarn-debug.log*

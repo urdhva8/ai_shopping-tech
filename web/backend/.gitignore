@@ -1,0 +1,10 @@
+﻿# env
+.env
+# node modules
+node_modules/
+# next/other build folders
+.next/
+dist/
+out/
+# IDE
+.vscode/
