@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-const API_BASE = "http://localhost:5000/api/auth";
+import { sendOtp, verifyOtp } from "../lib/authApi";
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -11,47 +10,43 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  // Send OTP
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
-      const res = await fetch(`${API_BASE}/send-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await sendOtp(email);
 
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message || "OTP failed");
+      if (!res.success) {
+        throw new Error(res.message || "Failed to send OTP");
+      }
 
       setStep("otp");
       setMessage("OTP sent to your email");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Failed to send OTP");
+      setMessage(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
   }
 
+  // Verify OTP
   async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
-      const res = await fetch(`${API_BASE}/verify-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
-      });
+      const res = await verifyOtp(email, otp);
 
-      const data = await res.json();
-      if (!data.token) throw new Error("Invalid OTP");
+      if (!res.success) {
+        throw new Error(res.message || "Invalid OTP");
+      }
 
-      localStorage.setItem("token", data.token);
       setMessage("Login successful 🎉");
+      // Later: save JWT, redirect user
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "OTP verification failed");
     } finally {
@@ -69,12 +64,15 @@ export default function Page() {
           Secure OTP Login
         </p>
 
+        {/* EMAIL STEP */}
         {step === "email" && (
           <form onSubmit={handleSendOtp} className="space-y-4">
             <input
               type="email"
-              placeholder="Enter your email"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-400 outline-none"
+              placeholder="Enter your email address"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3
+                         text-gray-800 placeholder-gray-400
+                         focus:ring-2 focus:ring-indigo-400 outline-none"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -83,19 +81,24 @@ export default function Page() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg
+                         font-semibold hover:bg-indigo-700 transition"
             >
-              {loading ? "Sending..." : "Send OTP"}
+              {loading ? "Sending OTP..." : "Send OTP"}
             </button>
           </form>
         )}
 
+        {/* OTP STEP */}
         {step === "otp" && (
           <form onSubmit={handleVerifyOtp} className="space-y-4">
             <input
               type="text"
               placeholder="Enter 6-digit OTP"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-center tracking-widest text-lg focus:ring-2 focus:ring-indigo-400 outline-none"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3
+                         text-center tracking-widest text-lg
+                         text-gray-800 placeholder-gray-400
+                         focus:ring-2 focus:ring-green-400 outline-none"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               maxLength={6}
@@ -105,13 +108,15 @@ export default function Page() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+              className="w-full bg-green-600 text-white py-3 rounded-lg
+                         font-semibold hover:bg-green-700 transition"
             >
               {loading ? "Verifying..." : "Verify OTP"}
             </button>
           </form>
         )}
 
+        {/* MESSAGE */}
         {message && (
           <p className="text-center text-sm text-gray-700 mt-4">
             {message}
