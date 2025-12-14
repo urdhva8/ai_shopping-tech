@@ -4,181 +4,121 @@ import { useState } from "react";
 
 export default function Page() {
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const [step, setStep] = useState<"form" | "otp">("form");
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-    username: "",
-  });
-
-  const [otp, setOtp] = useState("");
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+  function handleLogin() {
+    console.log("Login clicked");
+    alert("Login clicked (API will be added next)");
   }
 
-  // dummy submit handlers (you will wire to API later)
-  function handleContinue(e?: React.FormEvent) {
-    e?.preventDefault();
-    setStep("otp");
-  }
-
-  function handleVerify(e?: React.FormEvent) {
-    e?.preventDefault();
-    // TODO: call verify API
-    alert("Verify OTP (not implemented)");
+  function handleSignup() {
+    console.log("Signup clicked");
+    alert("Signup clicked (API will be added next)");
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="w-full max-w-md bg-white rounded-lg shadow p-6">
-        {/* Toggle */}
-        <div
-          className="flex justify-center gap-4 mb-6"
-          role="tablist"
-          aria-label="Authentication mode"
-        >
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-200">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+
+        {/* Title */}
+        <h1 className="text-3xl font-bold text-center text-indigo-600 mb-2">
+          AI Shoppy
+        </h1>
+        <p className="text-center text-gray-600 mb-6">
+          {mode === "login" ? "Login to your account" : "Create a new account"}
+        </p>
+
+        {/* Tabs */}
+        <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
           <button
-            role="tab"
-            aria-selected={mode === "login" ? "true" : "false"}
-            onClick={() => {
-              setMode("login");
-              setStep("form");
-            }}
-            className={`px-4 py-2 rounded ${
-              mode === "login" ? "bg-indigo-600 text-white" : "bg-gray-200"
+            onClick={() => setMode("login")}
+            className={`flex-1 py-2 rounded-md text-sm font-semibold transition ${
+              mode === "login"
+                ? "bg-indigo-600 text-white"
+                : "text-gray-700"
             }`}
           >
             Login
           </button>
-
           <button
-            role="tab"
-            aria-selected={mode === "signup" ? "true" : "false"}
-            onClick={() => {
-              setMode("signup");
-              setStep("form");
-            }}
-            className={`px-4 py-2 rounded ${
-              mode === "signup" ? "bg-indigo-600 text-white" : "bg-gray-200"
+            onClick={() => setMode("signup")}
+            className={`flex-1 py-2 rounded-md text-sm font-semibold transition ${
+              mode === "signup"
+                ? "bg-indigo-600 text-white"
+                : "text-gray-700"
             }`}
           >
             Signup
           </button>
         </div>
 
-        {/* FORM STEP */}
-        {step === "form" && (
-          <form
-            className="space-y-4"
-            onSubmit={handleContinue}
-            aria-labelledby="auth-heading"
-          >
-            <h2 id="auth-heading" className="sr-only">
-              {mode === "login" ? "Login form" : "Signup form"}
-            </h2>
-
-            {mode === "signup" && (
-              <div>
-                <label htmlFor="username" className="block text-sm text-gray-700">
-                  Username
-                </label>
-                <input
-                  id="username"
-                  name="username"
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2 mt-1"
-                  placeholder="Your name"
-                  aria-label="User name"
-                  required
-                />
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="email" className="block text-sm text-gray-700">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2 mt-1"
-                placeholder="mail@example.com"
-                aria-label="Email address"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                onChange={handleChange}
-                className="w-full border rounded px-3 py-2 mt-1"
-                placeholder="Enter your password"
-                aria-label="Password"
-                required
-              />
-            </div>
-
-            <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded">
-              Continue
-            </button>
-          </form>
-        )}
-
-        {/* OTP STEP */}
-        {step === "otp" && (
-          <form className="space-y-4" onSubmit={handleVerify} aria-labelledby="otp-heading">
-            <h3 id="otp-heading" className="text-sm font-medium text-gray-900">
-              Verify your email
-            </h3>
-
-            <p className="text-sm text-gray-700" id="otp-desc">
-              Enter the 6-digit code sent to <strong>{form.email || "your email"}</strong>
-            </p>
-
-            <label htmlFor="otp" className="sr-only">
-              One time code
-            </label>
+        {/* LOGIN FORM */}
+        {mode === "login" && (
+          <div className="space-y-4">
             <input
-              id="otp"
-              name="otp"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              maxLength={6}
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="w-full border rounded px-3 py-2 text-center tracking-widest"
-              placeholder="123456"
-              aria-label="One time code"
-              aria-describedby="otp-desc"
-              required
+              type="email"
+              placeholder="Email address"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 
+                         text-gray-800 placeholder-gray-400
+                         focus:ring-2 focus:ring-indigo-400 outline-none"
             />
 
-            <div className="flex gap-2">
-              <button type="submit" className="flex-1 bg-indigo-600 text-white py-2 rounded-md">
-                Verify & Continue
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setStep("form");
-                  setOtp("");
-                }}
-                className="flex-1 border rounded-md py-2"
-              >
-                Back
-              </button>
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 
+                         text-gray-800 placeholder-gray-400
+                         focus:ring-2 focus:ring-indigo-400 outline-none"
+            />
+
+            <div className="text-right text-sm text-indigo-600 cursor-pointer">
+              Forgot password?
             </div>
-          </form>
+
+            <button
+              onClick={handleLogin}
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg 
+                         font-semibold hover:bg-indigo-700 transition"
+            >
+              Login
+            </button>
+          </div>
+        )}
+
+        {/* SIGNUP FORM */}
+        {mode === "signup" && (
+          <div className="space-y-4">
+            <input
+              type="email"
+              placeholder="Email address"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 
+                         text-gray-800 placeholder-gray-400
+                         focus:ring-2 focus:ring-indigo-400 outline-none"
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 
+                         text-gray-800 placeholder-gray-400
+                         focus:ring-2 focus:ring-indigo-400 outline-none"
+            />
+
+            <input
+              type="password"
+              placeholder="Confirm password"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 
+                         text-gray-800 placeholder-gray-400
+                         focus:ring-2 focus:ring-indigo-400 outline-none"
+            />
+
+            <button
+              onClick={handleSignup}
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg 
+                         font-semibold hover:bg-indigo-700 transition"
+            >
+              Signup
+            </button>
+          </div>
         )}
       </div>
     </main>
