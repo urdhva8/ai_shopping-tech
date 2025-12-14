@@ -2,123 +2,120 @@
 
 import { useState } from "react";
 
-export default function Page() {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+const API_BASE = "http://localhost:5000/api/auth";
 
-  function handleLogin() {
-    console.log("Login clicked");
-    alert("Login clicked (API will be added next)");
+export default function Page() {
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState<"email" | "otp">("email");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function handleSendOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch(`${API_BASE}/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "OTP failed");
+
+      setStep("otp");
+      setMessage("OTP sent to your email");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleSignup() {
-    console.log("Signup clicked");
-    alert("Signup clicked (API will be added next)");
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch(`${API_BASE}/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const data = await res.json();
+      if (!data.token) throw new Error("Invalid OTP");
+
+      localStorage.setItem("token", data.token);
+      setMessage("Login successful 🎉");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "OTP verification failed");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-200">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-200 p-6">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-
-        {/* Title */}
         <h1 className="text-3xl font-bold text-center text-indigo-600 mb-2">
           AI Shoppy
         </h1>
         <p className="text-center text-gray-600 mb-6">
-          {mode === "login" ? "Login to your account" : "Create a new account"}
+          Secure OTP Login
         </p>
 
-        {/* Tabs */}
-        <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
-          <button
-            onClick={() => setMode("login")}
-            className={`flex-1 py-2 rounded-md text-sm font-semibold transition ${
-              mode === "login"
-                ? "bg-indigo-600 text-white"
-                : "text-gray-700"
-            }`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setMode("signup")}
-            className={`flex-1 py-2 rounded-md text-sm font-semibold transition ${
-              mode === "signup"
-                ? "bg-indigo-600 text-white"
-                : "text-gray-700"
-            }`}
-          >
-            Signup
-          </button>
-        </div>
-
-        {/* LOGIN FORM */}
-        {mode === "login" && (
-          <div className="space-y-4">
+        {step === "email" && (
+          <form onSubmit={handleSendOtp} className="space-y-4">
             <input
               type="email"
-              placeholder="Email address"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 
-                         text-gray-800 placeholder-gray-400
-                         focus:ring-2 focus:ring-indigo-400 outline-none"
+              placeholder="Enter your email"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-400 outline-none"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
-
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 
-                         text-gray-800 placeholder-gray-400
-                         focus:ring-2 focus:ring-indigo-400 outline-none"
-            />
-
-            <div className="text-right text-sm text-indigo-600 cursor-pointer">
-              Forgot password?
-            </div>
 
             <button
-              onClick={handleLogin}
-              className="w-full bg-indigo-600 text-white py-3 rounded-lg 
-                         font-semibold hover:bg-indigo-700 transition"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
             >
-              Login
+              {loading ? "Sending..." : "Send OTP"}
             </button>
-          </div>
+          </form>
         )}
 
-        {/* SIGNUP FORM */}
-        {mode === "signup" && (
-          <div className="space-y-4">
+        {step === "otp" && (
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
             <input
-              type="email"
-              placeholder="Email address"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 
-                         text-gray-800 placeholder-gray-400
-                         focus:ring-2 focus:ring-indigo-400 outline-none"
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 
-                         text-gray-800 placeholder-gray-400
-                         focus:ring-2 focus:ring-indigo-400 outline-none"
-            />
-
-            <input
-              type="password"
-              placeholder="Confirm password"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 
-                         text-gray-800 placeholder-gray-400
-                         focus:ring-2 focus:ring-indigo-400 outline-none"
+              type="text"
+              placeholder="Enter 6-digit OTP"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-center tracking-widest text-lg focus:ring-2 focus:ring-indigo-400 outline-none"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              maxLength={6}
+              required
             />
 
             <button
-              onClick={handleSignup}
-              className="w-full bg-indigo-600 text-white py-3 rounded-lg 
-                         font-semibold hover:bg-indigo-700 transition"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
             >
-              Signup
+              {loading ? "Verifying..." : "Verify OTP"}
             </button>
-          </div>
+          </form>
+        )}
+
+        {message && (
+          <p className="text-center text-sm text-gray-700 mt-4">
+            {message}
+          </p>
         )}
       </div>
     </main>
