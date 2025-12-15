@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const jwt = require("jsonwebtoken");
 const transporter = require("../config/mailer");
 
 // TEMP storage (later we’ll move to MongoDB)
@@ -48,7 +49,7 @@ router.post("/send-otp", async (req, res) => {
   }
 });
 
-/* ---------------- VERIFY OTP ---------------- */
+/* ---------------- VERIFY OTP + JWT ---------------- */
 router.post("/verify-otp", (req, res) => {
   const { email, otp } = req.body;
 
@@ -71,9 +72,17 @@ router.post("/verify-otp", (req, res) => {
   // OTP verified — remove it
   otpStore.delete(email);
 
+  // 🔐 Generate JWT
+  const token = jwt.sign(
+    { email },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
   res.json({
     success: true,
     message: "OTP verified successfully",
+    token,
   });
 });
 
