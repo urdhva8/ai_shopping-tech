@@ -32,27 +32,61 @@ export default function Page() {
     }
   }
 
-  // Verify OTP
-  async function handleVerifyOtp(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
+   async function handleVerifyOtp(e: React.FormEvent) {
+  e.preventDefault();
+  setLoading(true);
+  setMessage("");
 
-    try {
-      const res = await verifyOtp(email, otp);
+  try {
+    const res = await verifyOtp(email, otp);
 
-      if (!res.success) {
-        throw new Error(res.message || "Invalid OTP");
-      }
-
-      setMessage("Login successful 🎉");
-      // Later: save JWT, redirect user
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "OTP verification failed");
-    } finally {
-      setLoading(false);
+    if (!res.success || !res.token) {
+      throw new Error(res.message || "Invalid OTP");
     }
+
+    // ✅ SAVE JWT
+    localStorage.setItem("auth_token", res.token);
+
+    setMessage("Login successful 🎉");
+
+    // 🔜 Next step: redirect to dashboard
+    // router.push("/dashboard");
+  } catch (err) {
+    setMessage(err instanceof Error ? err.message : "OTP verification failed");
+  } finally {
+    setLoading(false);
   }
+}
+  async function submitOtp(e: React.FormEvent) {
+  e.preventDefault();
+  setLoading(true);
+  setMessage("");
+
+  try {
+    const res = await fetch("http://localhost:5000/api/auth/verify-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp }),
+    });
+
+    const data = await res.json();
+
+    if (!data.success || !data.token) {
+      throw new Error(data.message || "OTP verification failed");
+    }
+
+    // ✅ SAVE JWT
+    localStorage.setItem("auth_token", data.token);
+
+    setMessage("Login successful 🎉");
+  } catch (err) {
+    setMessage(err instanceof Error ? err.message : "OTP verification failed");
+  } finally {
+    setLoading(false);
+  }
+}
+
+
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-200 p-6">
