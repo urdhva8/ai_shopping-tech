@@ -17,5 +17,5 @@ export async function verifyOtp(email: string, otp: string) {
     body: JSON.stringify({ email, otp }),
   });
 
-  return res.json();
+  return res.json(); // { success, token }
 }

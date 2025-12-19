@@ -1,161 +1,26 @@
 "use client";
+import Link from "next/link";
 
-import { useState } from "react";
-import { sendOtp, verifyOtp } from "../lib/authApi";
-
-export default function Page() {
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState<"email" | "otp">("email");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-
-  // Send OTP
-  async function handleSendOtp(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    try {
-      const res = await sendOtp(email);
-
-      if (!res.success) {
-        throw new Error(res.message || "Failed to send OTP");
-      }
-
-      setStep("otp");
-      setMessage("OTP sent to your email");
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-   async function handleVerifyOtp(e: React.FormEvent) {
-  e.preventDefault();
-  setLoading(true);
-  setMessage("");
-
-  try {
-    const res = await verifyOtp(email, otp);
-
-    if (!res.success || !res.token) {
-      throw new Error(res.message || "Invalid OTP");
-    }
-
-    // ✅ SAVE JWT
-    localStorage.setItem("auth_token", res.token);
-
-    setMessage("Login successful 🎉");
-
-    // 🔜 Next step: redirect to dashboard
-    // router.push("/dashboard");
-  } catch (err) {
-    setMessage(err instanceof Error ? err.message : "OTP verification failed");
-  } finally {
-    setLoading(false);
-  }
-}
-  async function submitOtp(e: React.FormEvent) {
-  e.preventDefault();
-  setLoading(true);
-  setMessage("");
-
-  try {
-    const res = await fetch("http://localhost:5000/api/auth/verify-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, otp }),
-    });
-
-    const data = await res.json();
-
-    if (!data.success || !data.token) {
-      throw new Error(data.message || "OTP verification failed");
-    }
-
-    // ✅ SAVE JWT
-    localStorage.setItem("auth_token", data.token);
-
-    setMessage("Login successful 🎉");
-  } catch (err) {
-    setMessage(err instanceof Error ? err.message : "OTP verification failed");
-  } finally {
-    setLoading(false);
-  }
-}
-
-
-
+export default function Home() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-200 p-6">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-center text-indigo-600 mb-2">
-          AI Shoppy
-        </h1>
-        <p className="text-center text-gray-600 mb-6">
-          Secure OTP Login
-        </p>
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-200">
+      <div className="bg-white p-10 rounded-2xl shadow-xl text-center space-y-6">
+        <h1 className="text-3xl font-bold text-indigo-600">AI Shoppy</h1>
+        <p className="text-gray-600">Secure shopping with OTP login</p>
 
-        {/* EMAIL STEP */}
-        {step === "email" && (
-          <form onSubmit={handleSendOtp} className="space-y-4">
-            <input
-              type="email"
-              placeholder="Enter your email address"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3
-                         text-gray-800 placeholder-gray-400
-                         focus:ring-2 focus:ring-indigo-400 outline-none"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-indigo-600 text-white py-3 rounded-lg
-                         font-semibold hover:bg-indigo-700 transition"
-            >
-              {loading ? "Sending OTP..." : "Send OTP"}
+        <div className="space-y-3">
+          <Link href="/login">
+            <button className="w-full bg-indigo-600 text-white py-3 rounded-lg">
+              Login
             </button>
-          </form>
-        )}
+          </Link>
 
-        {/* OTP STEP */}
-        {step === "otp" && (
-          <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Enter 6-digit OTP"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3
-                         text-center tracking-widest text-lg
-                         text-gray-800 placeholder-gray-400
-                         focus:ring-2 focus:ring-green-400 outline-none"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              maxLength={6}
-              required
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-600 text-white py-3 rounded-lg
-                         font-semibold hover:bg-green-700 transition"
-            >
-              {loading ? "Verifying..." : "Verify OTP"}
+          <Link href="/signup">
+            <button className="w-full border border-indigo-600 text-indigo-600 py-3 rounded-lg">
+              Signup
             </button>
-          </form>
-        )}
-
-        {/* MESSAGE */}
-        {message && (
-          <p className="text-center text-sm text-gray-700 mt-4">
-            {message}
-          </p>
-        )}
+          </Link>
+        </div>
       </div>
     </main>
   );
